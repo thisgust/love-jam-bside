@@ -1,7 +1,7 @@
 local gravity = 50.0
-local max_velocity = 200.0
+local max_velocity = 100.0
 local player_speed = 250.0
-local jump_force = -50.0
+local jump_force = -25.0
 
 function love.load()
 	player = {}
