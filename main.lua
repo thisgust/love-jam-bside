@@ -1,102 +1,33 @@
-local isMainMenu = true
-local scale = 2 
-local flipped = true
-local gravity = 50.0
-local max_velocity = 100.0
-local player_speed = 250.0
-local jump_force = -25.0
+local sti = require("libraries/sti")
+require("player")
 
 function love.load()
-	-- Loading required libraries
-	anim8 = require 'libraries/anim8'
-	sti = require 'libraries/sti'
-	-- wf = require 'libraries'
-	
-	love.graphics.setDefaultFilter("nearest", "nearest")
-	mainMenuSource = love.audio.newSource("assets/Jelly Disco.ogg", "stream")
-
-	player = {}
-	player.x = 0.0
-	player.y = 0.0
-	player.vx = 0.0
-	player.vy = 0.0
-	player.idleCycleSs = love.graphics.newImage('assets/player_idle.png')
-	player.idleGrid = anim8.newGrid(56, 55, player.idleCycleSs:getWidth(), player.idleCycleSs:getHeight())
-	player.runCycleSs = love.graphics.newImage('assets/player_run.png')
-	player.runGrid = anim8.newGrid(56, 51, player.runCycleSs:getWidth(), player.runCycleSs:getHeight())
-
-	player.animations = {}
-	player.animations.run = anim8.newAnimation( player.runGrid('1-8', 1), 0.1)
-	player.animations.runFlipped = player.animations.run:clone():flipH() 
-	player.animations.idle = anim8.newAnimation( player.idleGrid('1-7', 1), 0.2)
-	player.animations.idleFlipped = player.animations.idle:clone():flipH() 
-
-	player.currentAnim = player.animations.idle
-	player.currentAnimSs = player.idleCycleSs
+	map = sti("maps/level1.lua", {"box2d"})
+	world = love.physics.newWorld(0, 0)
+	world:setCallbacks(beginContact, endContact)
+	map:box2d_init(world)
+	map.layers.solid.visible = false
+	player:load()
 end
 
 function love.update(dt)
-	if isMainMenu and not mainMenuSource:isPlaying() then
-		love.audio.play(mainMenuSource)
-	end
-
-	player.currentAnim:update(dt)
-	applyGravity(dt)
-	movePlayer(dt)
-	applyVelocity()
-
-	if player.vx > 0 or player.vx < 0 then
-		if not flipped then
-			player.currentAnim = player.animations.run
-			player.currentAnimSs = player.runCycleSs
-		else
-			player.currentAnim = player.animations.runFlipped
-			player.currentAnimSs = player.runCycleSs
-		end
-	else
-		if not flipped then
-			player.currentAnim = player.animations.idle
-			player.currentAnimSs = player.idleCycleSs
-		else
-			player.currentAnim = player.animations.idleFlipped
-			player.currentAnimSs = player.idleCycleSs
-		end
-	end
+	world:update(dt)
+	player:update(dt)
 end
 
 function love.draw()
-	love.graphics.clear(206 / 255, 229 / 255, 237 / 255)
-	player.currentAnim:draw(player.currentAnimSs, player.x, player.y)
+	player:draw()
+	map:draw(0, 0, 1, 1)
 end
 
-function love.keypressed(key, scancode, isrepeat)
-	if key == "escape" then
-		love.event.quit()
-	elseif key == "space" then
-		player.vy = player.vy + jump_force
-	end
+function love.keypressed(key)
+	player:jump(key)
 end
 
-function applyGravity(dt)
-	player.vy = player.vy + gravity * dt
-	if player.vy >= max_velocity then
-		player.vy = max_velocity
-	end
+function beginContact(a, b, collision)
+	player:beginContact(a, b, collision)
 end
 
-function movePlayer(dt)
-	if love.keyboard.isDown('right') then
-		player.vx = player_speed * dt
-		flipped = false
-	elseif love.keyboard.isDown('left') then
-		player.vx = -player_speed * dt
-		flipped = true
-	else
-		player.vx = 0
-	end
-end
-
-function applyVelocity()
-	player.x = player.x + player.vx
-	player.y = player.y + player.vy
+function endContact(a, b, collision)
+	player:endContact(a, b, collision)
 end
