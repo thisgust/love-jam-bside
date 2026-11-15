@@ -18,11 +18,11 @@ function player:load()
    self.grounded = false
 
    self.spritesheets = {}
-   self.spritesheets.idle = love.graphics.newImage("assets/player_idle.png")
-   self.spritesheets.run = love.graphics.newImage("assets/player_run.png")
-   self.spritesheets.attack = love.graphics.newImage("assets/player_attack.png")
-   self.spritesheets.jumpfall = love.graphics.newImage("assets/player_jumpfall.png")
-   self.spritesheets.hurt = love.graphics.newImage("assets/player_hurt.png")
+   self.spritesheets.idle = love.graphics.newImage('assets/player_idle.png')
+   self.spritesheets.run = love.graphics.newImage('assets/player_run.png')
+   self.spritesheets.attack = love.graphics.newImage('assets/player_attack.png')
+   self.spritesheets.jumpfall = love.graphics.newImage('assets/player_jumpfall.png')
+   self.spritesheets.hurt = love.graphics.newImage('assets/player_hurt.png')
 
    self.grids = {}
    self.grids.idle = anim8.newGrid(56, 55, self.spritesheets.idle:getWidth(), self.spritesheets.idle:getHeight(), 1, 1)
@@ -33,13 +33,14 @@ function player:load()
 
    self.animations = {}
    self.animations.idle = anim8.newAnimation(self.grids.idle('1-7'), 0.1)
-   self.animations.run = 
-   self.animations.attack = 
-   self.animations.jump = 
-   self.animations.fall = 
-   self.animations.hurt = 
+   self.animations.run = anim8.newAnimation(self.grids.run('1-8'), 0.1)
+   self.animations.attack = anim8.newAnimation(self.grids.attack('1-10'), 0.1)
+   self.animations.jump = anim8.newAnimation(self.grids.jumpfall('1-3'), 0.1)
+   self.animations.fall = anim8.newAnimation(self.grids.jumpfall('1-3'), 0.1)
+   self.animations.hurt = anim8.newAnimation(self.grids.hurt('1'), 1.0)
 
    self.currentAnimation = self.animations.idle
+   self.currentAnimationSpritesheet = self.spritesheets.idle
 
    self.physics = {}
    self.physics.body = love.physics.newBody(world, self.x, self.y, "dynamic")
@@ -63,6 +64,8 @@ end
 
 function player:move(dt)
    if love.keyboard.isDown("d", "right") then
+	  self.currentAnimation = self.animations.run
+	  self.currentAnimationSpritesheet = self.spritesheets.run
       if self.vx < self.maxSpeed then
          if self.vx + self.acceleration * dt < self.maxSpeed then
             self.vx = self.vx + self.acceleration * dt
@@ -71,6 +74,8 @@ function player:move(dt)
          end
       end
    elseif love.keyboard.isDown("a", "left") then
+	  self.currentAnimation = self.animations.run:clone():flipH()
+	  self.currentAnimationSpritesheet = self.spritesheets.run
       if self.vx > -self.maxSpeed then
          if self.vx - self.acceleration * dt > -self.maxSpeed then
             self.vx = self.vx - self.acceleration * dt
@@ -95,6 +100,8 @@ function player:applyFriction(dt)
          self.vx = self.vx + self.friction * dt
       else
          self.vx = 0
+		 self.currentAnimation = self.animations.idle
+		 self.currentAnimationSpritesheet = self.spritesheets.idle
       end
    end
 end
@@ -140,5 +147,5 @@ function player:endContact(a, b, collision)
 end
 
 function player:draw()
-	self.currentAnimation:draw()
+	self.currentAnimation:draw(self.currentAnimationSpritesheet, self.x, self.y)
 end
