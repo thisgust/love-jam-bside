@@ -1,5 +1,7 @@
 function love.conf(t)
-	t.window.title = 'Jellyvenger'
-	t.window.width = 1200
-	t.window.height = 800 
+	t.version = "11.5"
+
+	t.window.title = 'Kandy Kain in Jelly Land'
+	t.window.width = 800
+	t.window.height = 400 
 end
